@@ -24,7 +24,7 @@ const Dashboard = () => <div>Welcome to AgriCore Dashboard!</div>;
 
 const router=createBrowserRouter([
     {
-        path:'/login', 
+        path:'/signup', 
         element:<Login2/>
     },
     {

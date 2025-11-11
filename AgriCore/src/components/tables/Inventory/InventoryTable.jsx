@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useContext } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Button, TextField, IconButton, Box, Typography, Select, MenuItem, InputLabel, FormControl,
@@ -11,42 +10,21 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ItemDialog from './ItemDialog';
-
-const initialInventory = [
-    { id: 1, name: 'Carrot Seeds', quantity: 100, price: 10, category: 'Seeds', seedVariety: 'Nantes', sowingSeason: 'Spring' },
-    { id: 2, name: 'NPK Fertilizer', quantity: 50, price: 25, category: 'Fertilizers', composition: '10-10-10' },
-    { id: 3, name: 'Neem Oil', quantity: 75, price: 15, category: 'Pesticides', toxicityLevel: 'Low' },
-    { id: 4, name: 'Tomato Seeds', quantity: 120, price: 12, category: 'Seeds', seedVariety: 'Roma', sowingSeason: 'Spring' },
-];
-
-const categorySpecificFields = {
-    'Seeds': [
-        { name: 'seedVariety', label: 'Seed Variety', type: 'text' },
-        { name: 'sowingSeason', label: 'Sowing Season', type: 'text' },
-    ],
-    'Fertilizers': [
-        { name: 'composition', label: 'Composition', type: 'text' },
-    ],
-    'Pesticides': [
-        { name: 'toxicityLevel', label: 'Toxicity Level', type: 'text' },
-    ]
-};
+import { InventoryContext } from '../../../context/InventoryContext';
 
 export default function InventoryTable() {
-    const [inventory, setInventory] = useState(() => {
-        const savedInventory = localStorage.getItem('inventory');
-        return savedInventory ? JSON.parse(savedInventory) : initialInventory;
-    });
+    const {
+        inventory,
+        categories,
+        categoryUnits,
+        handleSaveItem,
+        handleDeleteItem,
+        handleAddCategory,
+        categorySpecificFields
+    } = useContext(InventoryContext);
+
     const [open, setOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [categories, setCategories] = useState(() => {
-        const savedCategories = localStorage.getItem('categories');
-        return savedCategories ? JSON.parse(savedCategories) : ['Seeds', 'Fertilizers', 'Pesticides'];
-    });
-    const [categoryUnits, setCategoryUnits] = useState(() => {
-        const savedCategoryUnits = localStorage.getItem('categoryUnits');
-        return savedCategoryUnits ? JSON.parse(savedCategoryUnits) : { Seeds: 'kg', Fertilizers: 'kg', Pesticides: 'l' };
-    });
     const [newCategory, setNewCategory] = useState('');
     const [newCategoryUnit, setNewCategoryUnit] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
@@ -54,19 +32,6 @@ export default function InventoryTable() {
     const [showSearchField, setShowSearchField] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const openFilter = Boolean(anchorEl);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        localStorage.setItem('inventory', JSON.stringify(inventory));
-    }, [inventory]);
-
-    useEffect(() => {
-        localStorage.setItem('categories', JSON.stringify(categories));
-    }, [categories]);
-
-    useEffect(() => {
-        localStorage.setItem('categoryUnits', JSON.stringify(categoryUnits));
-    }, [categoryUnits]);
 
     const handleClickOpen = (item = null) => {
         setEditingItem(item);
@@ -76,30 +41,6 @@ export default function InventoryTable() {
     const handleClose = () => {
         setOpen(false);
         setEditingItem(null);
-    };
-
-    const handleSaveItem = (itemToSave) => {
-        if (editingItem) {
-            setInventory(inventory.map(item => item.id === editingItem.id ? itemToSave : item));
-        } else {
-            const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
-            const itemToAdd = { ...itemToSave, id: newId };
-            setInventory([...inventory, itemToAdd]);
-        }
-        handleClose();
-    };
-
-    const handleDeleteItem = (id) => {
-        setInventory(inventory.filter(item => item.id !== id));
-    };
-
-    const handleAddCategory = () => {
-        if (newCategory && !categories.includes(newCategory)) {
-            setCategories([...categories, newCategory]);
-            setCategoryUnits({ ...categoryUnits, [newCategory]: newCategoryUnit });
-            setNewCategory('');
-            setNewCategoryUnit('');
-        }
     };
 
     const handleFilterClick = (event) => {
@@ -152,7 +93,7 @@ export default function InventoryTable() {
                         onChange={(e) => setNewCategoryUnit(e.target.value)}
                         size="small"
                     />
-                    <Button variant="contained" onClick={handleAddCategory}>Add Category</Button>
+                    <Button variant="contained" onClick={() => handleAddCategory(newCategory, newCategoryUnit)}>Add Category</Button>
                 </Box>
             </Box>
             <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -205,7 +146,7 @@ export default function InventoryTable() {
             <ItemDialog
                 open={open}
                 onClose={handleClose}
-                onSave={handleSaveItem}
+                onSave={(itemToSave) => handleSaveItem(itemToSave, editingItem)}
                 item={editingItem}
                 categories={categories}
                 categorySpecificFields={categorySpecificFields}

@@ -4,6 +4,7 @@ import Nav from "./components/Navbar/Nav.jsx";
 import Sidebar from "./components/sidebar/Sidebar.jsx";
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
+import { InventoryProvider } from './context/InventoryContext.jsx';
 
 const drawerWidth = 240;
 
@@ -17,7 +18,9 @@ function Layout() {
                 sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}/2px` }}
             >
                 <Toolbar />
-                <Outlet />
+                <InventoryProvider>
+                    <Outlet />
+                </InventoryProvider>
             </Box>
         </Box>
     );
