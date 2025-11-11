@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -60,6 +61,7 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp(props) {
+    const navigate = useNavigate();
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
     const [passwordError, setPasswordError] = React.useState(false);
@@ -67,55 +69,76 @@ export default function SignUp(props) {
     const [nameError, setNameError] = React.useState(false);
     const [nameErrorMessage, setNameErrorMessage] = React.useState('');
 
-    const validateInputs = () => {
-        const email = document.getElementById('email');
-        const password = document.getElementById('password');
-        const name = document.getElementById('name');
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        
+        const form = event.currentTarget;
+        const email = form.email.value;
+        const password = form.password.value;
+        const name = form.name.value;
+
+        // Reset all error states
+        setEmailError(false);
+        setEmailErrorMessage('');
+        setPasswordError(false);
+        setPasswordErrorMessage('');
+        setNameError(false);
+        setNameErrorMessage('');
 
         let isValid = true;
 
-        if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+        // Validate email
+        if (!email || !/\S+@\S+\.\S+/.test(email)) {
             setEmailError(true);
             setEmailErrorMessage('Please enter a valid email address.');
             isValid = false;
-        } else {
-            setEmailError(false);
-            setEmailErrorMessage('');
         }
 
-        if (!password.value || password.value.length < 6) {
+        // Validate password
+        if (!password || password.length < 6) {
             setPasswordError(true);
             setPasswordErrorMessage('Password must be at least 6 characters long.');
             isValid = false;
-        } else {
-            setPasswordError(false);
-            setPasswordErrorMessage('');
         }
 
-        if (!name.value || name.value.length < 1) {
+        // Validate name
+        if (!name || name.length < 1) {
             setNameError(true);
             setNameErrorMessage('Name is required.');
             isValid = false;
-        } else {
-            setNameError(false);
-            setNameErrorMessage('');
         }
 
-        return isValid;
-    };
+        if (isValid) {
+            const data = { name, email, password };
 
-    const handleSubmit = (event) => {
-        if (nameError || emailError || passwordError) {
-            event.preventDefault();
-            return;
+            fetch('http://localhost/api/v1/user/login', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(async (response) => {
+                if (response.ok) { // Check if the response was successful (status 200-299)
+                    return response.json();
+                }
+                const errorData = await response.json().catch(() => ({message : "An error occurred"}));
+                throw new Error(errorData.message || 'Sign-up failed');
+            })
+            .then(data => {
+                console.log('Sign-up successful:', data);
+                if (data.bearer) {
+                    localStorage.setItem('bearer', data.bearer); // Save the token
+                    navigate('/'); // Redirect to the dashboard
+                } else {
+                    throw new Error('No bearer token received in response.');
+                }
+            })
+            .catch(error => {
+                console.error('Sign-up error:', error.message);
+                
+            });
         }
-        const data = new FormData(event.currentTarget);
-        console.log({
-            name: data.get('name'),
-            lastName: data.get('lastName'),
-            email: data.get('email'),
-            password: data.get('password'),
-        });
     };
 
     return (
@@ -190,7 +213,6 @@ export default function SignUp(props) {
                             type="submit"
                             fullWidth
                             variant="contained"
-                            onClick={validateInputs}
                         >
                             Sign up
                         </Button>
