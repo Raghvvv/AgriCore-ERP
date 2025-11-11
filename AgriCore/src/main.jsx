@@ -14,11 +14,10 @@ import {createTheme} from "@mui/material/styles"
 import { green, amber } from "@mui/material/colors";
 
 import ProtectedRoutes from "./Utils/ProtectedRoutes.jsx";
-import InventoryTable from "./components/tables/InventoryTable.jsx";
-
-import CropsTable from './components/tables/CropsTable.jsx';
-import LivestockTable from './components/tables/LivestockTable.jsx';
-import FinanceTable from './components/tables/FinanceTable.jsx';
+import InventoryTable from "./components/tables/Inventory/InventoryTable.jsx";
+import CropsTable from './components/tables/Crops/CropsTable.jsx';
+import LivestockTable from './components/tables/Livestock/LivestockTable.jsx';
+import FinanceTable from './components/tables/Finance/FinanceTable.jsx';
 
 // Placeholder for a Dashboard component
 const Dashboard = () => <div>Welcome to AgriCore Dashboard!</div>;
