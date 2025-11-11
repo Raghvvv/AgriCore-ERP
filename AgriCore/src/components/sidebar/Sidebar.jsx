@@ -7,10 +7,20 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
+import { Link } from 'react-router-dom';
+import GrassIcon from '@mui/icons-material/Grass';
+import AgricultureIcon from '@mui/icons-material/Agriculture';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
 const drawerWidth = 240;
+
+const menuItems = [
+    { text: 'CROPS', path: '/crops', icon: <GrassIcon /> },
+    { text: 'LIVESTOCK', path: '/livestock', icon: <AgricultureIcon /> },
+    { text: 'FINANCE', path: '/finance', icon: <AttachMoneyIcon /> },
+    { text: 'INVENTORY', path: '/inventory', icon: <InventoryIcon /> }
+];
 
 export default function Sidebar() {
     return (
@@ -29,28 +39,17 @@ export default function Sidebar() {
             <Toolbar />
             <Divider />
             <List>
-                {['CROPS', 'LIVESTOCK', 'FINANCE', 'INVENTORY'].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton >
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>
-            <Divider />
-            <List>
-                {['All mail', 'Trash', 'Spam'].map((text, index) => (
-                    <ListItem key={text} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-                            </ListItemIcon>
-                            <ListItemText primary={text} />
-                        </ListItemButton>
-                    </ListItem>
+                {menuItems.map((item) => (
+                    <Link to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <ListItem key={item.text} disablePadding>
+                            <ListItemButton>
+                                <ListItemIcon>
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText primary={item.text} />
+                            </ListItemButton>
+                        </ListItem>
+                    </Link>
                 ))}
             </List>
         </Drawer>
