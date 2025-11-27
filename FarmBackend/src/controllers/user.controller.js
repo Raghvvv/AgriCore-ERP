@@ -219,7 +219,7 @@ const reGenerateTokens = asyncHandler(async(req, res)=>{
     }
 
     //refresh token verification
-    const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET , (Error)=>{throw new ApiError(403, Error.message, false)})
+    const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET );
 
     const user = User.findById(decodedToken?._id);
 

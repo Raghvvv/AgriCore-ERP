@@ -9,13 +9,15 @@ const categorySchema = new mongoose.Schema({
     },
     unit:{
         type: String,
+        enum: ["kg", "g", "liters", "ml", "pieces", "bags", "units"],
         required: true,
     },
     ownerId:{
         type: mongoose.Schema.Types.ObjectId,
-        ref:"user",
+        ref:"User",
         required:true,
-    }
+    },
+
 },{timestamps:true})
 
 export const Category = mongoose.model("Category", categorySchema);

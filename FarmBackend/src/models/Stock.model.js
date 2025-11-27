@@ -5,11 +5,11 @@ const stockSchema = new mongoose.Schema({
     
     item:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"item"
+        ref:"Item"
     },
     owner:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
+        ref:"User"
     },
     quantity:{
         type:Number,

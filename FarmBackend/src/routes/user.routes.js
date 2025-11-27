@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, logOutUser, updateUserPassword } from "../controllers/user.controller.js";
+import { registerUser, loginUser, logOutUser, updateUserPassword, reGenerateTokens } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/verifyJWT.middleware.js";
 
 //creating an router object 
@@ -10,7 +10,7 @@ const router = Router();
 router.route("/register").post(registerUser);
 
 //routes to the login request to the login function
-router.route("/login").post(verifyJWT, loginUser);
+router.route("/login").post(loginUser);
 
 //protected routes
 //logout route for user
@@ -18,6 +18,7 @@ router.route("/logOut").post(verifyJWT, logOutUser);
 
 //change user password route
 router.route("/update-user-password").post(verifyJWT, updateUserPassword);
+router.route("/regenerateAT").post(reGenerateTokens);
 
 // router.route("/checkMic").get(verifyJWT, (req, res)=>(
 //     res.json("Hello ")

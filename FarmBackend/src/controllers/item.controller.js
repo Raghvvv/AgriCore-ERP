@@ -4,6 +4,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Item } from "../models/Item.model.js";
 import { Stock } from "../models/Stock.model.js";
 import { Category } from "../models/Category.model.js";
+import { response } from "express";
+import mongoose from "mongoose";
 
 
 const addCategory = asyncHandler(async(req, res)=>{
@@ -82,23 +84,40 @@ const addItem = asyncHandler(async(req, res)=>{
 
 
 const getItems = asyncHandler(async(req, res)=>{
-    const items = await Item.find();
+    console.log(req.user?._id);
+    
+    const itemsArray = await Stock.find({owner:req.user?._id}).populate("item", "itemName category price")
 
-    if(!items){
+    if(!itemsArray){
         throw new ApiError(404, "Bad request");
     }
 
+    const responseData = itemsArray.map(stk => ({
+        ...stk.item.toObject(),
+        quantity:stk.quantity,
+        itemId:stk.item._id,
+        stockId:stk._id
+    }))
+
     return res.status(200)
-    .json(new ApiResponse("Successfull data retreival", 200, {items}))
+    .json(new ApiResponse("Successfull data retreival", 200, responseData))
 })
 
 //update item
 const updateItem = asyncHandler(async(req, res)=>{
     const { id } = req.params;
-    const user = req.user._id;
+    const userId = req.user._id;
 
     const allowedFields = ["itemName", "price"];
     const updateDataItem = {};
+
+    const stock  = await Stock.findOne({
+        $or:[{item:id, owner:userId}]
+    })
+
+    if (!stock) {
+        throw new ApiError(404, "Stock not found for the provided ID! ", false)
+    }
 
     for(const field of allowedFields){
         if(req.body[field] != undefined){
@@ -107,10 +126,12 @@ const updateItem = asyncHandler(async(req, res)=>{
     }
 
     const updateStock = req.body.quantity != undefined;
+    console.log(updateStock);
+    
 
-    let updatedItem = NULL;
+    let updatedItem = null;
     if(Object.keys(updateDataItem).length > 0){
-        updatedItem = await Item.findByIdAndUpdate({_id:id},
+        updatedItem = await Item.findByIdAndUpdate(id,
             {$set : updateDataItem},
             {new: true}
         )
@@ -123,10 +144,10 @@ const updateItem = asyncHandler(async(req, res)=>{
         throw new ApiError(404, "Item record not found! ", false);
     }
 
-    let updatedStock = NULL;
+    let updatedStock = null;
     if(updateStock){
-        updatedStock = await Stock.findByIdAndUpdate({item:id, owner:user},
-            {$set : {quantity: updateStock}},
+        updatedStock = await Stock.findByIdAndUpdate(stock._id,
+            {$set : {quantity: req.body.quantity}},
             {new: true}
         )
     }
@@ -138,28 +159,65 @@ const updateItem = asyncHandler(async(req, res)=>{
         throw new ApiError(404, "Stock record not found! ", false);
     }
 
+    const response = {
+        itemName: updatedItem.itemName,
+        price: updatedItem.price,
+        quantity: updatedStock.quantity
+    }
+
     return res.status(200)
-    .json(new ApiResponse("Item update successfully! ", 200, {updatedItem, updatedStock}));
+    .json(new ApiResponse("Item update successfully! ", 200, response));
 })
 
 //delete item
 const deleteItem = asyncHandler(async(req, res)=>{
-    const itemId = req.params?.id;
-    const userId = req.user?._id;
 
-    const itemFound = await Stock.findOne({item:itemId, ownder:userId});
+    const userId = req.user?._id;
+    console.log(req.params?.id);
+    
+
+    if (!mongoose.Types.ObjectId.isValid(req.params?.id)) {
+        return res.status(400).json({
+        success: false,
+        message: "Invalid ObjectId"
+     });
+}
+
+    const itemId = new mongoose.Types.ObjectId(req.params?.id)
+    console.log(itemId);
+    console.log(userId);
+    
+    const itemFound = await Stock.findOne({item:itemId});
 
     if(!itemFound){
         return res.status(404)
         .json(new ApiResponse("Stock not found of the required Item! ", 404));
     }
 
-    await Item.findByIdAndDelete({_id:id});
+    //inside a session
+    const session  = await mongoose.startSession();
+    session.startTransaction();
 
-    await Stock.findByIdAndDelete({item:itemId, ownder:userId});
+    try {
+        await Item.findByIdAndDelete(itemId, {session});
 
-    return res(200)
-    .json(new ApiResponse("Item and Stock deleted Successfully! ", 200))
+        await Stock.findByIdAndDelete(itemFound._id, {session});
+
+        await session.commitTransaction();
+
+        return res.status(200)
+        .json(new ApiResponse("Item and Stock deleted Successfully! ", 200))
+    } catch (error) {
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+        throw new ApiError(400, error.message);
+    }finally{
+        session.endSession();
+    }
+
+    
+   
 })
 
 
