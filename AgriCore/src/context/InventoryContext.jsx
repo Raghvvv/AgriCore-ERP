@@ -11,61 +11,88 @@ export const useInventory = () => {
 
 // 3. Create the Provider component responsible for state management.
 export const InventoryProvider = ({ children }) => {
-    // State for inventory items, categories, and their units.
+    // State for inventory items and categories.
     const [inventory, setInventory] = useState([]);
     const [categories, setCategories] = useState([]);
-    const [categoryUnits, setCategoryUnits] = useState({});
     
     // State to handle loading and error status during API calls.
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // On component mount, fetch the initial inventory data.
+    // On component mount, fetch all necessary data from the backend.
     useEffect(() => {
-        fetchInventory();
+        fetchData();
     }, []);
 
     // --- API Functions ---
 
     /**
-     * Fetches the entire inventory list from the backend.
-     * After fetching, it derives the categories and category units from the inventory data.
+     * Fetches both inventory and categories data from the backend concurrently.
      */
-    const fetchInventory = async () => {
+    const fetchData = async () => {
         setLoading(true);
         setError(null);
         try {
-            // Make an actual API call to the backend.
-            const response = await fetch('/api/v1/inventory'); // Assuming this is your API endpoint
+            // Fetch inventory and categories in parallel.
+            const [inventoryResponse, categoriesResponse] = await Promise.all([
+                fetch('/api/v1/inventory'),
+                fetch('/api/v1/categories') // Assumed endpoint
+            ]);
+
+            if (!inventoryResponse.ok) {
+                const errorData = await inventoryResponse.json();
+                throw new Error(errorData.message || 'Failed to fetch inventory');
+            }
+            if (!categoriesResponse.ok) {
+                const errorData = await categoriesResponse.json();
+                throw new Error(errorData.message || 'Failed to fetch categories');
+            }
+
+            const inventoryResult = await inventoryResponse.json();
+            const categoriesResult = await categoriesResponse.json();
+            
+            // The server response for inventory is { success: true, data: [...] }
+            if (inventoryResult.success && Array.isArray(inventoryResult.data)) {
+                setInventory(inventoryResult.data);
+            } else {
+                throw new Error('Unexpected response structure for inventory data');
+            }
+            
+            // Assuming the server response for categories is { success: true, data: [...] }
+            if (categoriesResult.success && Array.isArray(categoriesResult.data)) {
+                setCategories(categoriesResult.data);
+            } else {
+                // If the categories endpoint fails or is structured differently, we can still proceed
+                // but the UI might not display category names or units correctly.
+                console.warn('Could not fetch or parse categories.');
+                setCategories([]); // Set to empty array to prevent crashes
+            }
+
+        } catch (err) {
+            setError(err.message);
+            console.error("Failed to fetch data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    /**
+     * Fetches only the inventory list. Used after mutations.
+     */
+    const fetchInventory = async () => {
+        // This function can be simplified if mutations return the updated item,
+        // allowing for local state updates instead of a full refetch.
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch('/api/v1/inventory');
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Failed to fetch inventory');
             }
             const result = await response.json();
-            
-            // The server response structure is { success: true, data: { items: [...] } }
-            if (result.success && result.data && Array.isArray(result.data.items)) {
-                const inventoryItems = result.data.items;
-                setInventory(inventoryItems);
-
-                // --- Derive Categories and Units from the fetched data ---
-                // This is more efficient as it avoids multiple network requests.
-
-                // Create a set of unique category names.
-                const uniqueCategories = new Set(inventoryItems.map(item => item.category));
-                setCategories([...uniqueCategories]);
-
-                // Create a mapping of categories to their units.
-                // Note: This assumes each item has a 'unit' property.
-                // If multiple items in the same category have different units, the last one processed will win.
-                const units = inventoryItems.reduce((acc, item) => {
-                    if (item.category && item.unit) {
-                        acc[item.category] = item.unit;
-                    }
-                    return acc;
-                }, {});
-                setCategoryUnits(units);
-
+            if (result.success && Array.isArray(result.data)) {
+                setInventory(result.data);
             } else {
                 throw new Error('Unexpected response structure for inventory data');
             }
@@ -77,9 +104,11 @@ export const InventoryProvider = ({ children }) => {
         }
     };
 
+
     /**
      * Saves an item to the backend (either adding a new one or updating an existing one).
-     * After a successful save, it re-fetches the entire inventory to ensure all state is up-to-date.
+     * After a successful save, it optimistically updates the local state for new items,
+     * or re-fetches the entire inventory for updates (until specific update responses are known).
      */
     const handleSaveItem = async (itemToSave, editingItem) => {
         setLoading(true);
@@ -99,11 +128,46 @@ export const InventoryProvider = ({ children }) => {
                 throw new Error(errorData.message || `Failed to ${editingItem ? 'update' : 'add'} item`);
             }
             
-            // After successful save, re-fetch inventory to get the latest state.
-            await fetchInventory();
+            const result = await response.json();
+
+            if (!editingItem) {
+                // Optimistic update for new items
+                if (result.success && result.data && result.data.item && result.data.itemStock) {
+                    const { item, itemStock } = result.data;
+                    const newItemForState = {
+                        ...item,
+                        quantity: itemStock.quantity, // Combine item and itemStock data
+                        itemId: item._id, // Ensure itemId is present, matching _id
+                        stockId: itemStock._id // Ensure stockId is present
+                    };
+                    setInventory(prevInventory => [...prevInventory, newItemForState]);
+
+                    // Update categories if a new one was added or existing one used
+                    if (!categories.some(cat => cat._id === newItemForState.category)) {
+                        // In a real scenario, this would likely involve a separate API call to fetch
+                        // the new category details or the backend returning updated category list.
+                        // For now, we're assuming the category itself might already be known from
+                        // the initial fetchCategories, or we'd need to re-fetch categories too.
+                        // Since we don't have a clear new category API, we'll ensure our 'categories'
+                        // state is kept consistent by possibly adding a placeholder or re-fetching categories.
+                        // For simplicity, we'll re-run fetchData to refresh both if a new category is truly added.
+                        // This assumes the new item's category ID is an existing one for now.
+                        fetchData(); // Fallback to full fetch if category might be new/unresolved
+                    }
+                } else {
+                    // Fallback to full fetch if response structure is unexpected
+                    await fetchData();
+                }
+            } else {
+                // For updates, until a specific response structure is known, re-fetch everything
+                await fetchData();
+            }
+
         } catch (err) {
             setError(err.message);
             console.error("Failed to save item", err);
+            // In case of error after an optimistic update, revert or show error
+            await fetchData(); // Ensure state is consistent after an error
         } finally {
             setLoading(false);
         }
@@ -166,10 +230,9 @@ export const InventoryProvider = ({ children }) => {
     const value = {
         inventory,
         categories,
-        categoryUnits,
         loading,
         error,
-        fetchInventory, // Exposing fetchInventory in case a manual refresh is needed.
+        fetchInventory: fetchData, // Exposing fetchData for manual refresh.
         handleSaveItem,
         handleDeleteItem,
         updateInventoryQuantity,

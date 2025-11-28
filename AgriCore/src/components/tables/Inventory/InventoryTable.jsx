@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Button, TextField, IconButton, Box, Typography, Select, MenuItem, InputLabel, FormControl,
@@ -16,21 +16,23 @@ export default function InventoryTable() {
     const {
         inventory,
         categories,
-        categoryUnits,
         handleSaveItem,
         handleDeleteItem,
-        handleAddCategory,
     } = useContext(InventoryContext);
 
     const [open, setOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [newCategory, setNewCategory] = useState('');
-    const [newCategoryUnit, setNewCategoryUnit] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [showSearchField, setShowSearchField] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const openFilter = Boolean(anchorEl);
+
+    // Create a memoized map for efficient category lookups
+    const categoryMap = useMemo(() => {
+        if (!categories) return new Map();
+        return new Map(categories.map(cat => [cat._id, cat]));
+    }, [categories]);
 
     const handleClickOpen = (item = null) => {
         setEditingItem(item);
@@ -60,16 +62,16 @@ export default function InventoryTable() {
     };
 
     const filteredInventory = inventory.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) &&
         (selectedCategories.length === 0 || selectedCategories.includes(item.category))
     );
 
     const groupedInventory = filteredInventory.reduce((acc, item) => {
-        const category = item.category || 'Uncategorized';
-        if (!acc[category]) {
-            acc[category] = [];
+        const categoryId = item.category || 'Uncategorized';
+        if (!acc[categoryId]) {
+            acc[categoryId] = [];
         }
-        acc[category].push(item);
+        acc[categoryId].push(item);
         return acc;
     }, {});
 
@@ -79,21 +81,6 @@ export default function InventoryTable() {
                 <Button variant="contained" color="primary" onClick={() => handleClickOpen()}>
                     Add New Item
                 </Button>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                    <TextField
-                        label="New Category"
-                        value={newCategory}
-                        onChange={(e) => setNewCategory(e.target.value)}
-                        size="small"
-                    />
-                    <TextField
-                        label="Unit"
-                        value={newCategoryUnit}
-                        onChange={(e) => setNewCategoryUnit(e.target.value)}
-                        size="small"
-                    />
-                    <Button variant="contained" onClick={() => handleAddCategory(newCategory, newCategoryUnit)}>Add Category</Button>
-                </Box>
             </Box>
             <Box sx={{ p: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
                 <IconButton onClick={() => setShowSearchField(!showSearchField)} color="primary">
@@ -130,13 +117,13 @@ export default function InventoryTable() {
                             renderValue={(selected) => (
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                     {selected.map((value) => (
-                                        <Chip key={value} label={value} />
+                                        <Chip key={value} label={categoryMap.get(value)?.name || value} />
                                     ))}
                                 </Box>
                             )}
                         >
                             {categories.map(cat => (
-                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                                <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
                             ))}
                         </Select>
                     </FormControl>
@@ -158,25 +145,25 @@ export default function InventoryTable() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {Object.keys(groupedInventory).map(category => (
-                        <React.Fragment key={category}>
+                    {Object.keys(groupedInventory).map(categoryId => (
+                        <React.Fragment key={categoryId}>
                             <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
                                 <TableCell colSpan={4} sx={{ fontWeight: 'bold' }}>
-                                    <Typography variant="h6">{category}</Typography>
+                                    <Typography variant="h6">{categoryMap.get(categoryId)?.name || 'Uncategorized'}</Typography>
                                 </TableCell>
                             </TableRow>
-                            {groupedInventory[category].map((item) => (
-                                <TableRow key={item.id}>
+                            {groupedInventory[categoryId].map((item) => (
+                                <TableRow key={item._id}>
                                     <TableCell component="th" scope="row">
-                                        {item.name}
+                                        {item.itemName}
                                     </TableCell>
-                                    <TableCell align="right">{item.quantity} {categoryUnits[item.category]}</TableCell>
+                                    <TableCell align="right">{item.quantity} {categoryMap.get(item.category)?.unit}</TableCell>
                                     <TableCell align="right">{item.price}</TableCell>
                                     <TableCell align="right">
                                         <IconButton onClick={() => handleClickOpen(item)} aria-label="edit">
                                             <EditIcon />
                                         </IconButton>
-                                        <IconButton onClick={() => handleDeleteItem(item.id)} aria-label="delete">
+                                        <IconButton onClick={() => handleDeleteItem(item._id)} aria-label="delete">
                                             <DeleteIcon />
                                         </IconButton>
                                     </TableCell>

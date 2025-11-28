@@ -8,13 +8,19 @@ import { InventoryContext } from '../../../context/InventoryContext';
 
 export default function ItemDialog({ open, onClose, onSave, item }) {
     const { categories } = useContext(InventoryContext);
-    const [newItem, setNewItem] = useState({ name: '', quantity: '', price: '', category: '' });
+    const [newItem, setNewItem] = useState({ itemName: '', quantity: '', price: '', category: '' });
 
     useEffect(() => {
         if (item) {
-            setNewItem(item);
+            // Ensure we are using the correct property 'itemName'
+            setNewItem({
+                itemName: item.itemName || '',
+                quantity: item.quantity || '',
+                price: item.price || '',
+                category: item.category || ''
+            });
         } else {
-            setNewItem({ name: '', quantity: '', price: '', category: '' });
+            setNewItem({ itemName: '', quantity: '', price: '', category: '' });
         }
     }, [item, open]);
 
@@ -33,12 +39,12 @@ export default function ItemDialog({ open, onClose, onSave, item }) {
                 <TextField
                     autoFocus
                     margin="dense"
-                    name="name"
+                    name="itemName"
                     label="Item Name"
                     type="text"
                     fullWidth
                     variant="standard"
-                    value={newItem.name}
+                    value={newItem.itemName}
                     onChange={handleNewItemChange}
                 />
                 <TextField
@@ -69,7 +75,7 @@ export default function ItemDialog({ open, onClose, onSave, item }) {
                         onChange={handleNewItemChange}
                     >
                         {categories.map(cat => (
-                            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                            <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
                         ))}
                     </Select>
                 </FormControl>
