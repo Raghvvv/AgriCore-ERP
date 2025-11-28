@@ -1,78 +1,181 @@
-import * as React from 'react';
-import { useState, useEffect, createContext } from 'react';
+// Import necessary hooks from React.
+import React, { useState, useEffect, createContext, useContext } from 'react';
 
+// 1. Create the context which will be shared across components.
 export const InventoryContext = createContext();
 
-const initialInventory = [
-    // { id: 1, name: 'Carrot Seeds', quantity: 100, price: 10, category: 'Seeds' },
-    // { id: 2, name: 'NPK Fertilizer', quantity: 50, price: 25, category: 'Fertilizers' },
-    // { id: 3, name: 'Neem Oil', quantity: 75, price: 15, category: 'Pesticides' },
-    // { id: 4, name: 'Tomato Seeds', quantity: 120, price: 12, category: 'Seeds' },
-];
+// 2. Create a custom hook for easy consumption of the context.
+export const useInventory = () => {
+    return useContext(InventoryContext);
+};
 
+// 3. Create the Provider component responsible for state management.
 export const InventoryProvider = ({ children }) => {
-    const [inventory, setInventory] = useState(() => {
-        const savedInventory = localStorage.getItem('inventory');
-        return savedInventory ? JSON.parse(savedInventory) : initialInventory;
-    });
-    const [categories, setCategories] = useState(() => {
-        const savedCategories = localStorage.getItem('categories');
-        return savedCategories ? JSON.parse(savedCategories) : ['Seeds', 'Fertilizers', 'Pesticides'];
-    });
-    const [categoryUnits, setCategoryUnits] = useState(() => {
-        const savedCategoryUnits = localStorage.getItem('categoryUnits');
-        return savedCategoryUnits ? JSON.parse(savedCategoryUnits) : { Seeds: 'kg', Fertilizers: 'kg', Pesticides: 'l' };
-    });
+    // State for inventory items, categories, and their units.
+    const [inventory, setInventory] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [categoryUnits, setCategoryUnits] = useState({});
+    
+    // State to handle loading and error status during API calls.
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
+    // On component mount, fetch the initial inventory data.
     useEffect(() => {
-        localStorage.setItem('inventory', JSON.stringify(inventory));
-    }, [inventory]);
+        fetchInventory();
+    }, []);
 
-    useEffect(() => {
-        localStorage.setItem('categories', JSON.stringify(categories));
-    }, [categories]);
+    // --- API Functions ---
 
-    useEffect(() => {
-        localStorage.setItem('categoryUnits', JSON.stringify(categoryUnits));
-    }, [categoryUnits]);
+    /**
+     * Fetches the entire inventory list from the backend.
+     * After fetching, it derives the categories and category units from the inventory data.
+     */
+    const fetchInventory = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            // Make an actual API call to the backend.
+            const response = await fetch('/api/v1/inventory'); // Assuming this is your API endpoint
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to fetch inventory');
+            }
+            const result = await response.json();
+            
+            // The server response structure is { success: true, data: { items: [...] } }
+            if (result.success && result.data && Array.isArray(result.data.items)) {
+                const inventoryItems = result.data.items;
+                setInventory(inventoryItems);
 
-    const handleSaveItem = (itemToSave, editingItem) => {
-        if (editingItem) {
-            setInventory(inventory.map(item => item.id === editingItem.id ? itemToSave : item));
-        } else {
-            const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
-            const itemToAdd = { ...itemToSave, id: newId };
-            setInventory([...inventory, itemToAdd]);
+                // --- Derive Categories and Units from the fetched data ---
+                // This is more efficient as it avoids multiple network requests.
+
+                // Create a set of unique category names.
+                const uniqueCategories = new Set(inventoryItems.map(item => item.category));
+                setCategories([...uniqueCategories]);
+
+                // Create a mapping of categories to their units.
+                // Note: This assumes each item has a 'unit' property.
+                // If multiple items in the same category have different units, the last one processed will win.
+                const units = inventoryItems.reduce((acc, item) => {
+                    if (item.category && item.unit) {
+                        acc[item.category] = item.unit;
+                    }
+                    return acc;
+                }, {});
+                setCategoryUnits(units);
+
+            } else {
+                throw new Error('Unexpected response structure for inventory data');
+            }
+        } catch (err) {
+            setError(err.message);
+            console.error("Failed to fetch inventory", err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleDeleteItem = (id) => {
-        setInventory(inventory.filter(item => item.id !== id));
-    };
+    /**
+     * Saves an item to the backend (either adding a new one or updating an existing one).
+     * After a successful save, it re-fetches the entire inventory to ensure all state is up-to-date.
+     */
+    const handleSaveItem = async (itemToSave, editingItem) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const endpoint = editingItem ? `/api/v1/inventory/${editingItem._id}` : '/api/v1/inventory';
+            const method = editingItem ? 'PATCH' : 'POST';
 
-    const handleAddCategory = (newCategory, newCategoryUnit) => {
-        if (newCategory && !categories.includes(newCategory)) {
-            setCategories([...categories, newCategory]);
-            setCategoryUnits({ ...categoryUnits, [newCategory]: newCategoryUnit });
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemToSave),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `Failed to ${editingItem ? 'update' : 'add'} item`);
+            }
+            
+            // After successful save, re-fetch inventory to get the latest state.
+            await fetchInventory();
+        } catch (err) {
+            setError(err.message);
+            console.error("Failed to save item", err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const updateInventoryQuantity = (itemId, quantityChange) => {
-        setInventory(inventory.map(item =>
-            item.id === itemId ? { ...item, quantity: item.quantity + quantityChange } : item
-        ));
+    /**
+     * Deletes an item from the backend.
+     * Re-fetches the inventory on successful deletion.
+     */
+    const handleDeleteItem = async (itemId) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`/api/v1/inventory/${itemId}`, { method: 'DELETE' });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete item');
+            }
+            // After successful delete, re-fetch inventory.
+            await fetchInventory();
+        } catch (err) {
+            setError(err.message);
+            console.error("Failed to delete item", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    /**
+     * Updates the quantity of a specific item in the backend.
+     * Re-fetches the inventory on successful update.
+     */
+    const updateInventoryQuantity = async (itemId, quantityChange) => {
+        setLoading(true);
+        setError(null);
+        try {
+            // This endpoint might need to be adjusted based on your actual API design.
+            const response = await fetch(`/api/v1/inventory/${itemId}/quantity`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantityChange }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update inventory quantity');
+            }
+            // After successful update, re-fetch inventory.
+            await fetchInventory();
+        } catch (err) {
+            setError(err.message);
+            console.error("Failed to update inventory quantity", err);
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // The value object contains all the state and functions to be shared.
     const value = {
         inventory,
         categories,
         categoryUnits,
+        loading,
+        error,
+        fetchInventory, // Exposing fetchInventory in case a manual refresh is needed.
         handleSaveItem,
         handleDeleteItem,
-        handleAddCategory,
         updateInventoryQuantity,
     };
 
+    // The provider component wraps its children, making the context available to them.
     return (
         <InventoryContext.Provider value={value}>
             {children}
