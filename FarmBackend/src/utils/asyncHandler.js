@@ -6,7 +6,15 @@ const asyncHandler = (func) => async(req,res,next) => {
     try {
         await func(req,res,next);
     } catch (error) {
-        res.status(error.statusCode || 500).json({
+          if (err.code === 11000) {
+            const fieldName = Object.keys(err.keyValue)[0];
+            return res.status(400).json({
+            success: false,
+            message: `${fieldName} already exists`,
+        });
+    }
+  
+        return res.status(error.statusCode || 500).json({
             success: false,
             message:error.message,
         })

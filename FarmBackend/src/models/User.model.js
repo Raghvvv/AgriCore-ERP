@@ -5,35 +5,58 @@ import jwt from "jsonwebtoken";
 //defining user schema
 const UserSchema = new mongoose.Schema({
     //all the fields are objects with some attributes
-    username:{
-        type:String,
-        required:true,
-        unique:true,
-        trim:true,
-        lowercase:true,
-        index:true,
+    username: {
+      type: String,
+      required: [true, "Username is required"],
+      unique: [true, "Username should be unique"],
+      trim: true,
+      lowercase: true,
+      minlength: 3,
+      maxlength: 30,
+      match: [/^[a-zA-Z0-9_]+$/,"Username should only contain alphabets and underscore"],     // allow only alphanumeric + underscore
+      index: true,
     },
-    fullName:{
-        type:String,
-        required:true,
+
+    fullName: {
+      type: String,
+      required: [true, "Full name is required"],
+      trim: true,
+      minlength: [2, "Full name must be atleast 2 characters!"],
+      maxlength: [20, "Full name must be less than 20 characters"],
     },
+<<<<<<< HEAD
+
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      select: false,
+      minlength: [8, "Password length should be of 8 letters"], // security min length
+      maxlength: [30, "Password must be less than 30 characters"]
+=======
     password:{
-        type:String,
-        required:true,
-        select:false,
-        //TODO: add validation on password length
-    },
-    email:{
         type:String,
         required:true,
         unique:true,
         lowercase:true
-        //TODO: add validation to the email format
+        //TODO: add validation on password length
+>>>>>>> parent of e4e103f (Enhance item and crop management: add getCategories function, update item routes, and improve user authentication logic.)
     },
-    refreshToken:{
-        type:String
-    }
-},{
+
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: [true, "Email is already in use"],
+      lowercase: true,
+      trim: true,
+      match:/^[a-zA-Z0-9._%+-]+@gmail\.com$/, // email format validation
+    },
+
+    refreshToken: {
+      type: String,
+      select: false, // hides token on accidental queries
+    },
+},
+{
     //provides the date and time as other fields
     timestamps:true
 })
@@ -47,7 +70,7 @@ const UserSchema = new mongoose.Schema({
 UserSchema.pre('save', async function(next){
     if (!this.isModified("password")) {
         //if the password is not modified then skips the encrypting functionality
-        return next();
+        next();
     }
 
     //brcypt is a library that is used for encrypting data

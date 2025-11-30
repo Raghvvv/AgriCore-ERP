@@ -101,23 +101,18 @@ const loginUser = asyncHandler(async (req, res) => {
   //check if the user exists in the database in the first place
   const userExists = await User.findOne({
     $or: [{ username }],
-  }).select("+password");
+  });
 
   if (!userExists) {
     throw new ApiError(404, "User doesnot exists ", false);
   }
 
   //user exists then compare the password
-//   const validPass = await userExists.comparePassword(password);
-//   console.log(validPass);
-  
-    if (!await userExists.comparePassword(password)) {
-        throw new ApiError(404, "Password is incorrect! ");
-    }
+  const validPass = userExists.comparePassword(password);
 
-//   if (!validPass) {
-//     throw new ApiError(400, "Password is not correct ", false);
-//   }
+  if (!validPass) {
+    throw new ApiError(400, "Password is not correct ", false);
+  }
 
   console.log(userExists._id);
 
@@ -132,10 +127,13 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   //fetching the updated user details
-  const updatedUser = await User.findById(userExists._id).select("-refreshToken -password");
+  const updatedUser = await User.findById(userExists).select("-refreshToken -password");
 
   //options configured for the cookies
-  const options = process.env.options;
+  const options = {
+    httpOnly: true,
+    secure: false, //works only on http request
+  };
 
   return (
     res
@@ -219,7 +217,10 @@ const reGenerateTokens = async (req, res) => {
     //route -> login page
   }
 
-  const options = process.env.options;
+  const options = {
+    httpOnly: true,
+    secure: false,
+  };
 
   try {
     //refresh token verification

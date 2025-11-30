@@ -104,17 +104,6 @@ const getItems = asyncHandler(async (req, res) => {
     .json(new ApiResponse("Successfull data retreival", 200, responseData));
 });
 
-const getCategories = asyncHandler(async(req, res)=>{
-  const categoryData = await Category.find({owner:req.user?._id});
-
-  if (!categoryData) {
-    throw new ApiError(500, "No category for the user", false)
-  }
-
-  return res.status(200)
-  .json(new ApiResponse("catefory data retreival successfull", 200, categoryData))
-})
-
 //update item
 const updateItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -242,4 +231,4 @@ const deleteItem = asyncHandler(async (req, res) => {
   }
 });
 
-export { addItem, getItems, addCategory, updateItem, deleteItem, getCategories };
+export { addItem, getItems, addCategory, updateItem, deleteItem };

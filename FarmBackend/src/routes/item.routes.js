@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addCategory, addItem, getCategories } from "../controllers/item.controller.js";
+import { addCategory, addItem } from "../controllers/item.controller.js";
 import { verifyJWT } from "../middlewares/verifyJWT.middleware.js";
 import { getItems } from "../controllers/item.controller.js";
 import { updateItem } from "../controllers/item.controller.js";
@@ -19,8 +19,6 @@ router.route("/updateItem/:id").patch(verifyJWT, updateItem);
 router.route("/delete/:id").delete(verifyJWT, deleteItem);
 
 router.route("/addCategory").post(verifyJWT, addCategory);
-
-router.route("/getCategories").get(getCategories);
 
 //crop controllers
 router.route("/addCrop").post(verifyJWT, addCrop);

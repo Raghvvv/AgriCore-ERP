@@ -16,9 +16,15 @@ const verifyJWT = asyncHandler(async(req,res, next)=>{
         throw new ApiError(401, "User is not authenticated ", false)
     }
     
+    //cookie options configure
+    const options = {
+        httpOnly:true,
+        secure:false
+    }
+
     try {
         //verify the access token fetched from above
-        const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, process.env.options);
+        const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, options);
         
         //fetch the user details using the id in the decodedToken object
         const user = await User.findById(decodedToken._id)?.select("-password -refreshToken");
