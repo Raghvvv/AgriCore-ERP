@@ -24,7 +24,6 @@ const UserSchema = new mongoose.Schema({
       minlength: [2, "Full name must be atleast 2 characters!"],
       maxlength: [20, "Full name must be less than 20 characters"],
     },
-<<<<<<< HEAD
 
     password: {
       type: String,
@@ -32,14 +31,6 @@ const UserSchema = new mongoose.Schema({
       select: false,
       minlength: [8, "Password length should be of 8 letters"], // security min length
       maxlength: [30, "Password must be less than 30 characters"]
-=======
-    password:{
-        type:String,
-        required:true,
-        unique:true,
-        lowercase:true
-        //TODO: add validation on password length
->>>>>>> parent of e4e103f (Enhance item and crop management: add getCategories function, update item routes, and improve user authentication logic.)
     },
 
     email: {
