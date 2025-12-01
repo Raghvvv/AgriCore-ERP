@@ -132,6 +132,7 @@ const testimonials = [
 const LandingPage = () => {
     const navigate = useNavigate();
     const handleLoginClick = () => navigate('/login');
+    const handleSignup= ()=> navigate('/signup');
 
     return (
     <Box sx={{ flexGrow: 1, backgroundColor: 'grey.50' }}>
@@ -151,7 +152,7 @@ const LandingPage = () => {
             <Typography variant="h5" component="p" gutterBottom sx={{ mb: 4, maxWidth: '700px', margin: 'auto' }}>
             Integrate your crop management, inventory, and finances into one seamless, intelligent platform.
             </Typography>
-            <Button variant="contained" size="large" onClick={handleLoginClick} sx={{ 
+            <Button variant="contained" size="large" onClick={handleSignup} sx={{ 
                 mt: 4,
                 backgroundColor: 'white',
                  
