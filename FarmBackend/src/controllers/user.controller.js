@@ -138,13 +138,13 @@ const loginUser = asyncHandler(async (req, res) => {
 
   //options configured for the cookies
   const options = {
-        httpOnly:process.env.COOKIE_HTTP_ONLY,
-        secure:process.env.COOKIE_SECURE,
-        sameSite:process.env.COOKIE_SAMESITE,
-        domain:process.env.COOKIE_DOMAIN,
-        maxAge:process.env.COOKIE_MAX_AGE,
-        path:process.env.COOKIE_PATH,
-  };
+        httpOnly: process.env.COOKIE_HTTP_ONLY === "true",
+        secure: process.env.COOKIE_SECURE === "true",
+        sameSite: process.env.COOKIE_SAMESITE, // "None" | "Lax" | "Strict"
+        domain: process.env.COOKIE_DOMAIN || undefined, // frontend domain
+        maxAge: Number(process.env.COOKIE_MAX_AGE), // convert string to number
+        path: process.env.COOKIE_PATH || "/",
+    };
 
   return (
     res
