@@ -6,7 +6,7 @@ const asyncHandler = (func) => async(req,res,next) => {
     try {
         await func(req,res,next);
     } catch (error) {
-          if (err.code === 11000) {
+          if (error.code === 11000) {
             const fieldName = Object.keys(err.keyValue)[0];
             return res.status(400).json({
             success: false,

@@ -101,14 +101,16 @@ const loginUser = asyncHandler(async (req, res) => {
   //check if the user exists in the database in the first place
   const userExists = await User.findOne({
     $or: [{ username }],
-  });
+  }).select("+password");
 
   if (!userExists) {
     throw new ApiError(404, "User doesnot exists ", false);
   }
 
+  console.log(userExists);
+  
   //user exists then compare the password
-  const validPass = userExists.comparePassword(password);
+  const validPass = await userExists.comparePassword(password);
 
   if (!validPass) {
     throw new ApiError(400, "Password is not correct ", false);
