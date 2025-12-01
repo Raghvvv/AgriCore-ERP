@@ -31,6 +31,9 @@ const generateAccessNrefreshToken = async (userId) => {
 //this function register the first time user
 //fetch the user form data from the req body and creates a new user in the database
 const registerUser = asyncHandler(async (req, res) => {
+  if (req?.user) {
+    throw new ApiError(400, "Already logged in ", false);
+  }
   //fetching the form data from the req body
   const { username, email, password, fullName } = req.body;
 
@@ -84,6 +87,8 @@ const registerUser = asyncHandler(async (req, res) => {
       .json(new ApiResponse(true, 200, response))
   );
 });
+
+
 
 //provides the login feature
 //checks for the user in the database and compare the password for authentication
