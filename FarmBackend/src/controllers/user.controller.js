@@ -132,10 +132,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const updatedUser = await User.findById(userExists).select("-refreshToken -password");
 
   //options configured for the cookies
-  const options = {
-    httpOnly: true,
-    secure: false, //works only on http request
-  };
+  const options = process.env.options;
 
   return (
     res
