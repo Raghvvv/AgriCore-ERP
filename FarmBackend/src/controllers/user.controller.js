@@ -93,6 +93,7 @@ const registerUser = asyncHandler(async (req, res) => {
 //provides the login feature
 //checks for the user in the database and compare the password for authentication
 const loginUser = asyncHandler(async (req, res) => {
+  console.log(process.env.COOKIE_DOMAIN);
   //fetch the user details
   //deconstruction the req.body fields
   const { username, password } = req.body;
@@ -139,7 +140,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //options configured for the cookies
   const options = {
         httpOnly: process.env.COOKIE_HTTP_ONLY === "true",
-        secure: process.env.COOKIE_SECURE === "true",
+        secure: process.env.COOKIE_SECURE === "false",
         sameSite: process.env.COOKIE_SAMESITE, // "None" | "Lax" | "Strict"
         domain: process.env.COOKIE_DOMAIN || undefined, // frontend domain
         maxAge: Number(process.env.COOKIE_MAX_AGE), // convert string to number

@@ -145,8 +145,8 @@ const updateCrop = asyncHandler(async(req, res)=>{
         category:categoryId,
         owner:userId,
         price:price,
-        category:categoryId
-    })
+        category:categoryId,
+    },{session})
 
     if (!cropItem) {
         throw new ApiError(500, "Crop updation failed, try again! ", false);
@@ -156,7 +156,7 @@ const updateCrop = asyncHandler(async(req, res)=>{
         item: cropItem._id,
         owner:userId,
         quantity:actualYield,
-    })
+    },{session})
 
     if (!cropStock) {
         throw new ApiError(500, "Crop updation failed, try again! ", false);
