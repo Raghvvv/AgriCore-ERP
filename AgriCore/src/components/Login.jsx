@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -8,40 +8,45 @@ import {
   TextField,
   Typography,
   FormLabel,
-} from '@mui/material';
-import { useState } from 'react';
+} from "@mui/material";
+import { useState } from "react";
 
 function Login() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        import.meta.env.VITE_BACKEND_URL + "/api/v1/user/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
         },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include',
-      });
+      );
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Login successful:', data);
+        console.log("Login successful:", data);
         // Assuming the API returns a user object with a username field
-        navigate('/app', { state: { username: data.data.username } });
+        navigate("/app", { state: { username: data.data.username } });
       } else {
-        const errorData = await response.json().catch(() => ({ message: 'An error occurred' }));
-        throw new Error(errorData.message || 'Login failed');
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "An error occurred" }));
+        throw new Error(errorData.message || "Login failed");
       }
     } catch (error) {
-      console.error('Login error:', error.message);
+      console.error("Login error:", error.message);
       setError(error.message);
     }
   };
@@ -51,28 +56,28 @@ function Login() {
       <Container
         maxWidth="sm"
         sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '100vh',
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
         }}
       >
-        <Stack spacing={3} sx={{ mb: 3, width: '100%', maxWidth: '400px' }}>
+        <Stack spacing={3} sx={{ mb: 3, width: "100%", maxWidth: "400px" }}>
           <Typography variant="h3" textAlign="center">
-            {' '}
-            Login{' '}
+            {" "}
+            Login{" "}
           </Typography>
           <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
-              display: 'flex',
-              flexDirection: 'column',
+              display: "flex",
+              flexDirection: "column",
               gap: 2,
               p: 3,
               border: 1,
               borderRadius: 3.5,
-              borderColor: 'grey.300',
+              borderColor: "grey.300",
               boxShadow: 3,
             }}
           >
