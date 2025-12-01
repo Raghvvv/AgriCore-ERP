@@ -63,9 +63,7 @@ const CropsTable = () => {
                             <TableCell>Crop Name</TableCell>
                             <TableCell>Variety</TableCell>
                             <TableCell>Planting Date</TableCell>
-                            <TableCell>Expected Harvest</TableCell>
                             <TableCell>Status</TableCell>
-                            <TableCell>Location</TableCell>
                             <TableCell align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -75,9 +73,7 @@ const CropsTable = () => {
                                 <TableCell component="th" scope="row">{crop.cropName}</TableCell>
                                 <TableCell>{crop.variety}</TableCell>
                                 <TableCell>{new Date(crop.plantingDate).toLocaleDateString()}</TableCell>
-                                <TableCell>{new Date(crop.expectedHarvestDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{crop.status}</TableCell>
-                                <TableCell>{crop.fieldLocation}</TableCell>
                                 <TableCell align="right">
                                     <IconButton onClick={() => handleOpenDialog(crop)} size="small">
                                         <EditIcon />
