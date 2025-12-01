@@ -179,6 +179,7 @@ const updateItem = asyncHandler(async (req, res) => {
     await session.commitTransaction();
 
     const response = {
+        _id : updatedItem._id,
         itemName: updatedItem.itemName,
         price: updatedItem.price,
         quantity: updatedStock.quantity,
