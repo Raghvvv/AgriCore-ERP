@@ -33,17 +33,21 @@ export const InventoryProvider = ({ children }) => {
     try {
       // Fetch inventory and categories in parallel.
       const [inventoryResponse, categoriesResponse] = await Promise.all([
-        fetch('http://localhost:8000/api/v1/item/getItems', { credentials: 'include' }),
-        fetch('http://localhost:8000/api/v1/item/getCategories', { credentials: 'include' })
+        fetch(import.meta.end.VITE_BACKEND_URL + "/api/v1/item/getItems", {
+          credentials: "include",
+        }),
+        fetch(import.meta.end.VITE_BACKEND_URL + "/api/v1/item/getCategories", {
+          credentials: "include",
+        }),
       ]);
 
       if (!inventoryResponse.ok) {
         const errorData = await inventoryResponse.json();
-        throw new Error(errorData.message || 'Failed to fetch inventory');
+        throw new Error(errorData.message || "Failed to fetch inventory");
       }
       if (!categoriesResponse.ok) {
         const errorData = await categoriesResponse.json();
-        throw new Error(errorData.message || 'Failed to fetch categories');
+        throw new Error(errorData.message || "Failed to fetch categories");
       }
 
       const inventoryResult = await inventoryResponse.json();
@@ -53,14 +57,14 @@ export const InventoryProvider = ({ children }) => {
       if (inventoryResult.success && Array.isArray(inventoryResult.data)) {
         setInventory(inventoryResult.data);
       } else {
-        throw new Error('Unexpected response structure for inventory data');
+        throw new Error("Unexpected response structure for inventory data");
       }
 
       // Assuming the server response for categories is { success: true, data: [...] }
       if (categoriesResult.success && Array.isArray(categoriesResult.data)) {
         setCategories(categoriesResult.data);
       } else {
-        console.warn('Could not fetch or parse categories.');
+        console.warn("Could not fetch or parse categories.");
         setCategories([]); // Set to empty array to prevent crashes
       }
     } catch (err) {
@@ -81,34 +85,44 @@ export const InventoryProvider = ({ children }) => {
     setError(null);
     try {
       const isUpdating = itemData._id;
-      const endpoint = isUpdating ? `http://localhost:8000/api/v1/item/updateItem/${itemData._id}` : 'http://localhost:8000/api/v1/item/addItem';
-      const method = isUpdating ? 'PATCH' : 'POST';
+      const endpoint = isUpdating
+        ? `${import.meta.end.VITE_BACKEND_URL}/api/v1/item/updateItem/${itemData._id}`
+        : import.meta.end.VITE_BACKEND_URL + "/api/v1/item/addItem";
+      const method = isUpdating ? "PATCH" : "POST";
 
       const response = await fetch(endpoint, {
         method: method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(itemData),
-        credentials: 'include'
+        credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${isUpdating ? 'update' : 'add'} item`);
+        throw new Error(
+          errorData.message ||
+            `Failed to ${isUpdating ? "update" : "add"} item`,
+        );
       }
 
       const result = await response.json();
 
       if (!isUpdating) {
         // Optimistic update for new items
-        if (result.success && result.data && result.data.item && result.data.itemStock) {
+        if (
+          result.success &&
+          result.data &&
+          result.data.item &&
+          result.data.itemStock
+        ) {
           const { item, itemStock } = result.data;
           const newItemForState = {
             ...item,
             quantity: itemStock.quantity, // Combine item and itemStock data
             itemId: item._id, // Ensure itemId is present, matching _id
-            stockId: itemStock._id // Ensure stockId is present
+            stockId: itemStock._id, // Ensure stockId is present
           };
-          setInventory(prevInventory => [...prevInventory, newItemForState]);
+          setInventory((prevInventory) => [...prevInventory, newItemForState]);
           return true;
         } else {
           // Fallback to full fetch if response structure is unexpected
@@ -119,8 +133,10 @@ export const InventoryProvider = ({ children }) => {
         // For updates, assuming the backend returns the updated item,
         // find and replace it in the local state.
         if (result.success && result.data) {
-          setInventory(prevInventory =>
-            prevInventory.map(item => (item._id === result.data._id ? { ...item, ...result.data } : item))
+          setInventory((prevInventory) =>
+            prevInventory.map((item) =>
+              item._id === result.data._id ? { ...item, ...result.data } : item,
+            ),
           );
           return true;
         } else {
@@ -146,10 +162,13 @@ export const InventoryProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/item/delete/${itemId}`, { 
-        method: 'DELETE',
-        credentials: 'include' 
-      });
+      const response = await fetch(
+        `${import.meta.end.VITE_BACKEND_URL}/api/v1/item/delete/${itemId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -171,25 +190,33 @@ export const InventoryProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:8000/api/v1/item/addCategory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(categoryData),
-        credentials: 'include'
-      });
+      const response = await fetch(
+        import.meta.end.VITE_BACKEND_URL + "/api/v1/item/addCategory",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(categoryData),
+          credentials: "include",
+        },
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add category');
+        throw new Error(errorData.message || "Failed to add category");
       }
 
       const result = await response.json();
 
       if (result.success && result.data && result.data.newCategory) {
-        setCategories(prevCategories => [...prevCategories, result.data.newCategory]);
+        setCategories((prevCategories) => [
+          ...prevCategories,
+          result.data.newCategory,
+        ]);
         return true; // Indicate success
       } else {
-        throw new Error(result.message || 'Unexpected response structure for adding category');
+        throw new Error(
+          result.message || "Unexpected response structure for adding category",
+        );
       }
     } catch (err) {
       setError(err.message);
@@ -210,15 +237,17 @@ export const InventoryProvider = ({ children }) => {
     try {
       // This endpoint might need to be adjusted based on your actual API design.
       const response = await fetch(`/api/v1/item/updateItem/${itemId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ quantityChange }),
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update inventory quantity");
+        throw new Error(
+          errorData.message || "Failed to update inventory quantity",
+        );
       }
       // After successful update, re-fetch inventory.
       await fetchData();
