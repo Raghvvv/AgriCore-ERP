@@ -25,7 +25,7 @@ const menuItems = [
     { text: 'INVENTORY', path: '/app/inventory', icon: <InventoryIcon /> }
 ];
 
-export default function Sidebar({ username }) {
+export default function Sidebar({ username, sidebarOpen, handleSidebarToggle }) {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
@@ -51,8 +51,13 @@ export default function Sidebar({ username }) {
                     boxSizing: 'border-box',
                 },
             }}
-            variant="permanent"
+            variant="temporary"
             anchor="left"
+            open={sidebarOpen}
+            onClose={handleSidebarToggle}
+            ModalProps={{
+                keepMounted: true, // Better open performance on mobile.
+            }}
         >
             <Toolbar />
             <Divider />

@@ -2,12 +2,10 @@ import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import { color } from '@mui/system';
 
-export default function Nav() {
+export default function Nav({ handleSidebarToggle }) {
     return (
         <AppBar
             position="fixed"
@@ -20,6 +18,7 @@ export default function Nav() {
                     color="inherit"
                     aria-label="menu"
                     sx={{ mr: 2 }}
+                    onClick={handleSidebarToggle}
                 >
                     <MenuIcon />
                 </IconButton>
