@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, logOutUser, updateUserPassword, reGenerateTokens } from "../controllers/user.controller.js";
+import { registerUser, loginUser, logOutUser, updateUserPassword, reGenerateTokens, checkUser } from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/verifyJWT.middleware.js";
 
 //creating an router object 
@@ -24,6 +24,7 @@ router.route("/regenerateAT").post(reGenerateTokens);
 //     res.json("Hello ")
 // ))
 
+router.route("/checkUser").get(verifyJWT, checkUser);
 
 
 export {router};

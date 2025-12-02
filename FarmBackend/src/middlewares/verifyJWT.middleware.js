@@ -8,6 +8,11 @@ const verifyJWT = asyncHandler(async(req,res, next)=>{
     //fetch the token from cookies or header object
     const accessToken = req.cookies?.accessToken; 
     const refreshToken = req.cookies?.refreshToken;
+
+     console.log("Hello");
+  
+  console.log("Cookie domain: ", process.env.COOKIE_DOMAIN, typeof(process.env.COOKIE_DOMAIN));
+  console.log("Current User: ", req.user)
     
 
     //throw error if no token is availabe
@@ -16,15 +21,21 @@ const verifyJWT = asyncHandler(async(req,res, next)=>{
         throw new ApiError(401, "User is not authenticated ", false)
     }
     
+    console.log(process.env.COOKIE_DOMAIN);
+    
     //cookie options configure
-    // const options = {
-    //     httpOnly:true,
-    //     secure:false
-    // }
+    const options = {
+        httpOnly: process.env.COOKIE_HTTP_ONLY === "true",
+        secure: process.env.COOKIE_SECURE === "false",
+        // sameSite: process.env.COOKIE_SAMESITE, // "None" | "Lax" | "Strict"
+        // domain: process.env.COOKIE_DOMAIN || undefined, // frontend domain
+        // maxAge: Number(process.env.COOKIE_MAX_AGE), // convert string to number
+        // path: process.env.COOKIE_PATH || "/",
+    };
 
     try {
         //verify the access token fetched from above
-        const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, process.env.options);
+        const decodedToken = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, options);
         
         //fetch the user details using the id in the decodedToken object
         const user = await User.findById(decodedToken._id)?.select("-password -refreshToken");

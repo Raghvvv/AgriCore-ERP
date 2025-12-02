@@ -1,112 +1,167 @@
-# AgriCore
+# AgriCore-ERP
 
----
+AgriCore-ERP is a comprehensive, full-stack web application designed to streamline farm management operations. It provides an intuitive interface for managing crops, inventory, and other farm-related activities.
 
-## Project Specs
+## Features
 
----
+*   **User Authentication:** Secure user registration and login functionality.
+*   **Dashboard:** A central hub for viewing key farm metrics.
+*   **Crop Management:** Track and manage crop cycles, from planting to harvest.
+*   **Inventory Management:** Keep a detailed record of farm inventory, including supplies and equipment.
+*   **Financial Tracking:** Monitor farm-related income and expenses.
+*   **Livestock Management:** (Future implementation) Manage livestock records.
 
-### Functionality for MVP
+## Technologies Used
 
-1. Inventory Management
-   - Seeds
-   - Equipment
-   - Consumables
-   - Assets?
-2. Crop/Planting Management
-   - Crop Planting
-   - Harvesting
-   - Yeild
-3. Finance/Accounting
-   - Honestly have no F-ing clue
-4. Task List/Reminders
-   - User created reminders
-   - Up coming tasks like harvesting or planting date
-   - Alerts for low stocks/Broken Equipment
+### Frontend
 
-### Extra Functionality
+*   **React:** A JavaScript library for building user interfaces.
+*   **Vite:** A fast build tool and development server for modern web projects.
+*   **Material-UI:** A popular React UI framework for creating beautiful and responsive layouts.
+*   **React Router:** For handling client-side routing.
 
-1. Storing photos of Inventory
-2. Email alerts
-3. Future planting system
-   - To create a planting task for future, so the stock/consumables are
-     deducted yet, but it's also not available to be used either.
+### Backend
 
-- _The MVP shoudn't expect a big scale, i.e., Multiple plots/fields in a farm,
-  Selling a variety of products, Making shipments for selling assets, having a
-  storage container for Inventory_
+*   **Node.js:** A JavaScript runtime environment for building server-side applications.
+*   **Express.js:** A minimal and flexible Node.js web application framework.
+*   **MongoDB:** A NoSQL database for storing application data.
+*   **Mongoose:** An ODM (Object Data Modeling) library for MongoDB and Node.js.
+*   **JWT (JSON Web Tokens):** For securing API endpoints.
 
-## User Workflow and Functionality
+## Getting Started
 
----
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### New User
+### Prerequisites
 
-- can't see any dashboard without Authentication
-- Login/Signup options available
-- Have a landing page
+*   Node.js (v14 or later)
+*   npm (v6 or later)
+*   MongoDB (local or a cloud-based instance)
 
-### Default Dashboard
+### Installation
 
-- Small weather widget
-- Upcoming tasks/Reminder list
-- Have a Add new task/reminder button here
+1.  **Clone the repository:**
 
-### Inventory Dashboard
+    ```bash
+    git clone https://github.com/your-username/AgriCore-ERP.git
+    cd AgriCore-ERP
+    ```
 
-- Broad Groups(Based on the attributes of the items in here)
-  > Equipment(In Use,Broken,status,active)  
-  > Seeds/Planting material  
-  > Consumables(pesticides, fertilizers, etc)  
-  > Assets? (Products produced on farm)
-- The Groups have categories
-  > Types of equipment  
-  > Types of fertilizers and pesticides  
-  > Different kind of seeds for same crop
-  - Have a 'Add new category button'
-  - Have a 'Add new item' button
-- Add Items: This takes multiple inputs in a form and stores in DB, part of it
-  is displayed in the table on the dashboard
-- Add Items form entries
-  1. Type name
-  2. variety/category
-  3. Unit(KGs, no. of items, Litres, pounds)
-  4. linked to product(seed->crop)
-  5. Alert when less than \_\_ quantity
-  6. Description
-- Table of Inventory
-  1. Seeds(Name|Type|Available amt.|Unit|Price)
-  2. Equipment(Name|Type|Brand|Status)
-  3. Consumables(Names|Amount|Unit)
+2.  **Install frontend dependencies:**
 
-### Crops/Planting dashboard
+    ```bash
+    cd AgriCore
+    npm install
+    ```
 
-- Table of all crops planted
-- Attributes of table
-  | Crop Type | Category | Planting date | Harvesting Date | Expected Yeild |
-- Create new planting button/form
-- Plantation form entries
-  1. Crop Type
-  2. Days to maturity(info from crop db model)
-  3. Planting depth(info from crop db model)
-  4. Estimated Loss rate
-  5. Unit of measurement
-  6. Expected yeild per 100ft
-  7. Estimated revenue
-- Add new crop type button/form
-- Crop form entries
-  1. Name
-  2. Type
-  3. Resources needed/usage
-  4. Estimated growth rate(days to maturity)
-  5. Yeild
-  6. % of loss in yeild
-  7. Planting depth?
-  8. etc
+3.  **Install backend dependencies:**
 
-### Tasks/To Do/Reminder
+    ```bash
+    cd ../FarmBackend
+    npm install
+    ```
 
-- Have a todo/reminder/button on every dashboard(maybe the navbar) to create an
-  entry on the default homepage
+### Running the Application
 
-### Accounting/Finance dashboard
+1.  **Start the backend server:**
+
+    *   Navigate to the `FarmBackend` directory.
+    *   Create a `.env` file in the `FarmBackend` directory and add the following environment variables:
+
+        ```
+        PORT=8000
+        MONGODB_URI=<your_mongodb_connection_string>
+        CORS_ORIGIN=*
+        ACCESS_TOKEN_SECRET=<your_access_token_secret>
+        ACCESS_TOKEN_EXPIRY=1d
+        REFRESH_TOKEN_SECRET=<your_refresh_token_secret>
+        REFRESH_TOKEN_EXPIRY=10d
+        ```
+
+    *   Start the server:
+
+        ```bash
+        npm run dev
+        ```
+
+        The backend server will be running on `http://localhost:8000`.
+
+2.  **Start the frontend development server:**
+
+    *   Navigate to the `AgriCore` directory.
+    *   Start the development server:
+
+        ```bash
+        npm run dev
+        ```
+
+        The frontend application will be accessible at `http://localhost:5173`.
+
+## Project Structure
+
+The project is organized into two main directories:
+
+*   `AgriCore`: Contains the React frontend application.
+*   `FarmBackend`: Contains the Node.js and Express.js backend application.
+
+A brief overview of the directory structure:
+
+```
+AgriCore-ERP/
+├── AgriCore/         # Frontend React application
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── pages/
+│   └── ...
+└── FarmBackend/      # Backend Node.js application
+    ├── src/
+    │   ├── controllers/
+    │   ├── db/
+    │   ├── middlewares/
+    │   ├── models/
+    │   ├── routes/
+    │   └── services/
+    └── ...
+```
+
+## API Endpoints
+
+The backend API provides the following endpoints:
+
+*   **User Authentication:**
+    *   `POST /api/v1/users/register`: Register a new user.
+    *   `POST /api/v1/users/login`: Log in a user.
+    *   `POST /api/v1/users/logout`: Log out a user.
+
+*   **Crops:**
+    *   `GET /api/v1/crops`: Get all crops.
+    *   `POST /api/v1/crops`: Create a new crop.
+    *   `GET /api/v1/crops/:id`: Get a specific crop.
+    *   `PUT /api/v1/crops/:id`: Update a crop.
+    *   `DELETE /api/v1/crops/:id`: Delete a crop.
+
+*   **Inventory:**
+    *   `GET /api/v1/items`: Get all inventory items.
+    *   `POST /api/v1/items`: Create a new item.
+    *   `GET /api/v1/items/:id`: Get a specific item.
+    *   `PUT /api/v1/items/:id`: Update an item.
+    *   `DELETE /api/v1/items/:id`: Delete an item.
+
+*   **Categories:**
+    *   `GET /api/v1/categories`: Get all categories.
+    *   `POST /api/v1/categories`: Create a new category.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a pull request.
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.

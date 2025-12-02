@@ -202,7 +202,7 @@ const updateItem = asyncHandler(async (req, res) => {
 
 //delete item
 const deleteItem = asyncHandler(async (req, res) => {
-  const userId = req.user?._id;
+  const userId = req.user?._id;  
 
   if (!mongoose.Types.ObjectId.isValid(req.params?.id)) {
     return res.status(400).json({
@@ -211,11 +211,12 @@ const deleteItem = asyncHandler(async (req, res) => {
     });
   }
 
-  const itemId = new mongoose.ObjectId(req.params?.id);
+  //const itemId = new mongoose.ObjectId(req.params?.id);
 
-  const itemFound = await Stock.findOne({ item: itemId });
+  const stockFound = await Stock.find({item:req.params.id} );
+  
 
-  if (!itemFound) {
+  if (!stockFound) {
     return res
       .status(404)
       .json(new ApiResponse("Stock not found of the required Item! ", 404));
@@ -226,9 +227,14 @@ const deleteItem = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
-    await Item.findByIdAndDelete(itemId, { session });
+    
+    const deleteRep = await Item.findByIdAndDelete(stockFound[0].item, { session });
 
-    await Stock.findByIdAndDelete(itemFound._id, { session });
+    if (!deleteRep) {
+      throw new ApiError(404, "Something went wrong")
+    }
+
+    await Stock.findByIdAndDelete(stockFound[0]._id, { session });
 
     await session.commitTransaction();
 
