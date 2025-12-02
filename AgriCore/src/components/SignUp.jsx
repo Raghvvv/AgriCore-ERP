@@ -259,34 +259,16 @@ export default function SignUp(props) {
             Sign up
           </Button>
         </Box>
-        <Divider>
-          <Typography sx={{ color: "text.secondary" }}>or</Typography>
-        </Divider>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => alert("Sign up with Google")}
+        <Typography sx={{ textAlign: "center", mt: 2 }}>
+          Already have an account?{" "}
+          <Link
+            variant="body2"
+            sx={{ alignSelf: "center", cursor: "pointer" }}
+            onClick={() => navigate("/login")}
           >
-            Sign up with Google
-          </Button>
-          <Button
-            fullWidth
-            variant="outlined"
-            onClick={() => alert("Sign up with Facebook")}
-          >
-            Sign up with Facebook
-          </Button>
-          <Typography sx={{ textAlign: "center" }}>
-            Already have an account?{" "}
-            <Link
-              variant="body2"
-              sx={{ alignSelf: "center" }}
-            >
-              Sign in
-            </Link>
-          </Typography>
-        </Box>
+            Sign in
+          </Link>
+        </Typography>
       </Card>
     </SignUpContainer>
   );
