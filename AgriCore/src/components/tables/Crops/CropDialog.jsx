@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { useCrops } from '../../../context/CropsContext';
 import { InventoryContext } from '../../../context/InventoryContext';
-import { CONSUMABLE_CATEGORY_NAMES } from '../../../Utils/constants'; // Import the constant
+import CONSUMABLE_CATEGORY_NAMES from '../../../Utils/constants'; // Import the constant
 
 const CropDialog = ({ open, onClose, editingCrop }) => {
   const { addCrop, updateCrop } = useCrops();
