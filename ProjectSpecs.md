@@ -18,7 +18,7 @@
    - Harvesting
    - Yeild
 3. Finance/Accounting
-   - Honestly have no F-ing clue
+   - To be implemented in the future
 4. Task List/Reminders
    - User created reminders
    - Up coming tasks like harvesting or planting date
