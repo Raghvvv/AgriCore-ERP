@@ -138,8 +138,8 @@ const LandingPage = () => {
     <Box sx={{ flexGrow: 1, backgroundColor: 'grey.50' }}>
       <AppBar position="absolute" color="transparent" elevation={0} sx={{ zIndex: 2 }}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>AgriCore-ERP</Typography>
-          <Button color="inherit" sx={{ fontWeight: 'bold' }} onClick={handleLoginClick}>Login</Button>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold', color: 'white' }}>AgriCore-ERP</Typography>
+          <Button color="inherit" sx={{ fontWeight: 'bold', color: 'white' }} onClick={handleLoginClick}>Login</Button>
         </Toolbar>
       </AppBar>
 
