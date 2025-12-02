@@ -26,7 +26,6 @@ const menuItems = [
 ];
 
 export default function Sidebar({
-  username,
   sidebarOpen,
   handleSidebarToggle,
 }) {
@@ -84,12 +83,6 @@ export default function Sidebar({
       <div style={{ position: "absolute", bottom: 0, width: "100%" }}>
         <Divider />
         <List>
-          <ListItem>
-            <ListItemIcon>
-              <AccountCircleIcon />
-            </ListItemIcon>
-            <ListItemText primary={username || "User"} />
-          </ListItem>
           <ListItem disablePadding>
             <ListItemButton onClick={handleLogout}>
               <ListItemIcon>

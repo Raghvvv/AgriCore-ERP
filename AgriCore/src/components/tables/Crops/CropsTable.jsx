@@ -4,25 +4,40 @@ import {
   Typography, Box, Button, IconButton, CircularProgress
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-
 import { useCrops } from '../../../context/CropsContext';
 import CropDialog from './CropDialog';
+import HarvestDialog from './HarvestDialog'; // Import HarvestDialog
 
 const CropsTable = () => {
     const { crops, deleteCrop, loading, error } = useCrops();
-    const [dialogOpen, setDialogOpen] = useState(false);
+    
+    // State for the crop add/edit dialog
+    const [cropDialogOpen, setCropDialogOpen] = useState(false);
     const [editingCrop, setEditingCrop] = useState(null);
 
-    const handleOpenDialog = (crop = null) => {
+    // State for the harvest dialog
+    const [harvestDialogOpen, setHarvestDialogOpen] = useState(false);
+    const [harvestingCrop, setHarvestingCrop] = useState(null);
+
+    const handleOpenCropDialog = (crop = null) => {
         setEditingCrop(crop);
-        setDialogOpen(true);
+        setCropDialogOpen(true);
     };
 
-    const handleCloseDialog = () => {
+    const handleCloseCropDialog = () => {
         setEditingCrop(null);
-        setDialogOpen(false);
+        setCropDialogOpen(false);
+    };
+
+    const handleOpenHarvestDialog = (crop) => {
+        setHarvestingCrop(crop);
+        setHarvestDialogOpen(true);
+    };
+
+    const handleCloseHarvestDialog = () => {
+        setHarvestingCrop(null);
+        setHarvestDialogOpen(false);
     };
 
     const handleDelete = (cropId) => {
@@ -38,7 +53,7 @@ const CropsTable = () => {
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => handleOpenDialog()}
+                    onClick={() => handleOpenCropDialog()}
                 >
                     Add New Crop
                 </Button>
@@ -64,6 +79,8 @@ const CropsTable = () => {
                             <TableCell>Variety</TableCell>
                             <TableCell>Planting Date</TableCell>
                             <TableCell>Status</TableCell>
+                            <TableCell>Harvested At</TableCell>
+                            <TableCell>Actual Yield</TableCell>
                             <TableCell align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -74,10 +91,14 @@ const CropsTable = () => {
                                 <TableCell>{crop.variety}</TableCell>
                                 <TableCell>{new Date(crop.plantingDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{crop.status}</TableCell>
+                                <TableCell>{crop.harvestedAt ? new Date(crop.harvestedAt).toLocaleDateString() : '---'}</TableCell>
+                                <TableCell>{crop.actualYield ?? '---'}</TableCell>
                                 <TableCell align="right">
-                                    <IconButton onClick={() => handleOpenDialog(crop)} size="small">
-                                        <EditIcon />
-                                    </IconButton>
+                                    {crop.status !== 'Harvested' && (
+                                        <Button onClick={() => handleOpenHarvestDialog(crop)} size="small" variant="outlined">
+                                            Harvest
+                                        </Button>
+                                    )}
                                     <IconButton onClick={() => handleDelete(crop._id)} size="small">
                                         <DeleteIcon />
                                     </IconButton>
@@ -89,9 +110,15 @@ const CropsTable = () => {
             )}
 
             <CropDialog
-                open={dialogOpen}
-                onClose={handleCloseDialog}
+                open={cropDialogOpen}
+                onClose={handleCloseCropDialog}
                 editingCrop={editingCrop}
+            />
+
+            <HarvestDialog
+                open={harvestDialogOpen}
+                onClose={handleCloseHarvestDialog}
+                harvestingCrop={harvestingCrop}
             />
         </TableContainer>
     );

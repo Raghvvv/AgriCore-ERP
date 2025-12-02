@@ -51,7 +51,23 @@ export default function ItemDialog({ open, onClose, onSave, item, itemError }) {
             return;
         }
 
-        const success = await onSave(newItem);
+        // Find the category ID based on the selected categoryName
+        const selectedCategory = categories.find(cat => cat.categoryName === newItem.categoryName);
+        if (!selectedCategory) {
+            setLocalError("Selected category is invalid.");
+            return;
+        }
+
+        const itemDataToSend = {
+            _id: newItem._id, // Include _id if updating
+            itemName: newItem.itemName,
+            quantity: parseInt(newItem.quantity, 10), // Ensure quantity is a number
+            price: parseFloat(newItem.price), // Ensure price is a number
+            category: selectedCategory._id, // Use the category ID
+            // categoryName is not sent to the backend as it expects the ID
+        };
+
+        const success = await onSave(itemDataToSend);
         if (success) {
             onClose(); // Close the dialog only if saving was successful
         } else {
